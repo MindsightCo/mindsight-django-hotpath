@@ -1,3 +1,4 @@
+import cProfile
 import django.core.exceptions
 import random
 
@@ -22,18 +23,28 @@ class Middleware(object):
             send_timeout=self._config.MINDSIGHT_SEND_TIMEOUT)
 
 
-    def __call__(self, request):
-        profile = False
-
+    def _must_profile(self):
         if self._config.MINDSIGHT_SAMPLE_PROBABILITY >= 1.0:
-            profile = True
+            return True
         elif random.random() < self._config.MINDSIGHT_SAMPLE_PROBABILITY:
-            profile = True
+            return True
 
+        return False
+
+
+
+    def __call__(self, request):
+        profiler = None
+
+        if self._must_profile():
+            profiler = cProfile.Profile()
+            profiler.enable()
+        
         response = self.get_response(request)
 
-        if profile is True:
-            print("hit")
+        if profiler is not None:
+            profiler.disable()
+            profiler.print_stats(sort="time")
             self._store.record("hit")
 
         return response
