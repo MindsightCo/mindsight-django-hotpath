@@ -17,6 +17,7 @@ class MindsightConfig(object):
         from django.conf import settings
 
         options = {option: getattr(settings, option) for option in dir(settings) if option.startswith('MINDSIGHT')}
+        options['MINDSIGHT_ROOT'] = settings.BASE_DIR
         self.attrs = copy(self.defaults)
         self.attrs.update(options)
 

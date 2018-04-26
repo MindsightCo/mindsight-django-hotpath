@@ -1,7 +1,8 @@
-import cProfile
+import cProfile, inspect, io, pstats, random
 import django.core.exceptions
-import random
 
+from operator import attrgetter
+from pathlib import Path, PurePosixPath
 from .config import MindsightConfig
 from .store import SampleStore
 
@@ -31,20 +32,44 @@ class Middleware(object):
 
         return False
 
+    
+    def _in_project(self, root, stat):
+        return inspect.iscode(stat.code) and \
+            root in Path(stat.code.co_filename).parents
+
+
+    def _full_fn_name(self, stat):
+        p = PurePosixPath(stat.code.co_filename)
+        rel_no_ext = p.relative_to(self._config.MINDSIGHT_ROOT).with_suffix('')
+        return str(rel_no_ext).replace('/', '.') + '.' + stat.code.co_name
+
+
+    def _process_profile(self, profile):
+        root = Path(self._config.MINDSIGHT_ROOT)
+
+        all_stats = sorted(profile.getstats(), key=attrgetter('totaltime'), reverse=True)
+        stats = [s for s in all_stats if self._in_project(root, s)]
+        
+        ncalls = len(stats)
+
+        for stat in stats:
+            fn_name = self._full_fn_name(stat)
+
+            self._store.record(fn_name, ncalls=ncalls)
+            ncalls -= 1
 
 
     def __call__(self, request):
-        profiler = None
+        profile = None
+        response = None
 
         if self._must_profile():
-            profiler = cProfile.Profile()
-            profiler.enable()
-        
-        response = self.get_response(request)
+            profile = cProfile.Profile()
+            response = profile.runcall(self.get_response, request)
+        else:
+            response = self.get_response(request)
 
-        if profiler is not None:
-            profiler.disable()
-            profiler.print_stats(sort="time")
-            self._store.record("hit")
+        if profile is not None:
+            self._process_profile(profile)
 
         return response

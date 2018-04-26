@@ -11,11 +11,11 @@ class SampleStore(object):
         self._count = 0
 
 
-    def record(self, fn_name):
+    def record(self, fn_name, ncalls=1):
         if fn_name not in self._samples:
-            self._samples[fn_name] = 1
+            self._samples[fn_name] = ncalls
         else:
-            self._samples[fn_name] += 1
+            self._samples[fn_name] += ncalls
 
         self._count += 1
         if self._count > self.send_after:
