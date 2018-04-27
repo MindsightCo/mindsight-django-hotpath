@@ -3,7 +3,8 @@ from copy import copy
 
 class MindsightConfig(object):
     defaults = {
-        'MINDSIGHT_SAMPLE_PROBABILITY': 0.05,
+        'MINDSIGHT_SAMPLE_PROBABILITY': 0.02,
+        'MINDSIGHT_SAMPLE_INTERVAL': 0.010,
         'MINDSIGHT_SEND_AFTER': 100,
         'MINDSIGHT_SEND_TIMEOUT': 0.05
     }

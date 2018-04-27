@@ -50,13 +50,11 @@ class Middleware(object):
         all_stats = sorted(profile.getstats(), key=attrgetter('totaltime'), reverse=True)
         stats = [s for s in all_stats if self._in_project(root, s)]
         
-        ncalls = len(stats)
-
         for stat in stats:
             fn_name = self._full_fn_name(stat)
+            ncalls = int(stat.totaltime / self._config.MINDSIGHT_SAMPLE_INTERVAL)
 
             self._store.record(fn_name, ncalls=ncalls)
-            ncalls -= 1
 
 
     def __call__(self, request):
