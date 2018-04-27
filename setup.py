@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name="mindsight-django",
+    name="mindsight-django-hotpath",
     version="0.1",
     description="Mindsight HotPath Sampler for Python/Django",
     url="https://github.com/MindsightCo/mindsight-django-hotpath",
