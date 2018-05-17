@@ -54,7 +54,8 @@ class Middleware(object):
             fn_name = self._full_fn_name(stat)
             ncalls = int(stat.totaltime / self._config.MINDSIGHT_SAMPLE_INTERVAL)
 
-            self._store.record(fn_name, ncalls=ncalls)
+            if ncalls > 0:
+                self._store.record(fn_name, ncalls=ncalls)
 
 
     def __call__(self, request):
