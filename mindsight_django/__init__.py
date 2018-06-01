@@ -1,5 +1,11 @@
 import cProfile, inspect, io, pstats, random
 import django.core.exceptions
+import os.path
+
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    MiddlewareMixin = object
 
 from operator import attrgetter
 from pathlib import Path, PurePosixPath
@@ -7,9 +13,9 @@ from .config import MindsightConfig
 from .store import SampleStore
 
 
-class Middleware(object):
-    def __init__(self, get_response):
-        self.get_response = get_response
+class Middleware(MiddlewareMixin):
+    def __init__(self, get_response=None):
+        self._profile = None
         self._config = MindsightConfig()
 
         if self._config.MINDSIGHT_AGENT_URL is None:
@@ -22,6 +28,9 @@ class Middleware(object):
             self._config.MINDSIGHT_AGENT_URL,
             send_after=self._config.MINDSIGHT_SEND_AFTER,
             send_timeout=self._config.MINDSIGHT_SEND_TIMEOUT)
+
+        if MiddlewareMixin is not object:
+            super(Middleware, self).__init__(get_response)
 
 
     def _must_profile(self):
@@ -40,8 +49,9 @@ class Middleware(object):
 
     def _full_fn_name(self, stat):
         p = PurePosixPath(stat.code.co_filename)
-        rel_no_ext = p.relative_to(self._config.MINDSIGHT_ROOT).with_suffix('')
-        return str(rel_no_ext).replace('/', '.') + '.' + stat.code.co_name
+        rel = p.relative_to(self._config.MINDSIGHT_ROOT)
+        rel_no_ext = os.path.splitext(str(rel))[0]
+        return rel_no_ext.replace('/', '.') + '.' + stat.code.co_name
 
 
     def _process_profile(self, profile):
@@ -58,17 +68,21 @@ class Middleware(object):
                 self._store.record(fn_name, ncalls=ncalls)
 
 
-    def __call__(self, request):
-        profile = None
-        response = None
+    def process_request(self, request):
+        if not self._must_profile():
+            return None
 
-        if self._must_profile():
-            profile = cProfile.Profile()
-            response = profile.runcall(self.get_response, request)
-        else:
-            response = self.get_response(request)
+        self._profile = cProfile.Profile()
+        self._profile.enable()
+        return None
 
-        if profile is not None:
-            self._process_profile(profile)
 
+    def process_response(self, request, response):
+        if self._profile is None:
+            return response
+
+        self._profile.disable()
+        prof = self._profile
+        self._profile = None
+        self._process_profile(prof)
         return response
