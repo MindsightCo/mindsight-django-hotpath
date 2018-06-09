@@ -8,7 +8,7 @@ except ImportError:
     MiddlewareMixin = object
 
 from operator import attrgetter
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from .config import MindsightConfig
 from .store import SampleStore
 
@@ -44,11 +44,11 @@ class Middleware(MiddlewareMixin):
     
     def _in_project(self, root, stat):
         return inspect.iscode(stat.code) and \
-            root in Path(stat.code.co_filename).parents
+            root in Path(stat.code.co_filename).absolute().parents
 
 
     def _full_fn_name(self, stat):
-        p = PurePosixPath(stat.code.co_filename)
+        p = Path(stat.code.co_filename).absolute()
         rel = p.relative_to(self._config.MINDSIGHT_ROOT)
         rel_no_ext = os.path.splitext(str(rel))[0]
         return rel_no_ext.replace('/', '.') + '.' + stat.code.co_name
@@ -59,13 +59,15 @@ class Middleware(MiddlewareMixin):
 
         all_stats = sorted(profile.getstats(), key=attrgetter('totaltime'), reverse=True)
         stats = [s for s in all_stats if self._in_project(root, s)]
-        
+
         for stat in stats:
             fn_name = self._full_fn_name(stat)
             ncalls = int(stat.totaltime / self._config.MINDSIGHT_SAMPLE_INTERVAL)
 
-            if ncalls > 0:
-                self._store.record(fn_name, ncalls=ncalls)
+            if ncalls <= 0:
+                ncalls = 1
+
+            self._store.record(fn_name, ncalls=ncalls)
 
 
     def process_request(self, request):
