@@ -20,12 +20,18 @@ import mindsight_django
 # rest of your configuration
 
 # Mindsight collector config
-MINDSIGHT_AGENT_URL='http://localhost:8000'
+
+# URL where you are running the Mindsight Agent
+MINDSIGHT_AGENT_URL = 'http://localhost:8000'
+
+# Name of your project as configured in Mindsight
+MINDSIGHT_PROJECT = 'my-project-name'
 ```
 
 The `MINDSIGHT_AGENT_URL` setting is the URL of the [Mindsight Agent](https://github.com/MindsightCo/hotpath-agent), which is
-required to send diagnostic data to Mindsight's backend for further analysis. If this setting is omitted, Mindsight's middleware
-will be disabled by the Django runtime.
+required to send diagnostic data to Mindsight's backend for further analysis. If this setting is omitted, Mindsight's middleware will be disabled by the Django runtime.
+
+The `MINDSIGHT_PROJECT` setting is the name of your project you've configured in the Mindsight service. If this setting is omitted, Mindsight's middleware will be disabled by the Django runtime.
 
 Finally, register Mindsight as a Django middleware in your `settings.py` file:
 
@@ -44,6 +50,9 @@ The Mindsight middleware has additional configuration options to fine-tune its b
 
 ### Options
 
+- `MINDSIGHT_ENVIRONMENT`
+  - Default: `'production'`
+  - Deployment environment your program is running in. Change this if you have multiple environments you want to measure independently.
 - `MINDSIGHT_SEND_AFTER`
   - Default: `100`
   - Number of measurements to cache before sending data to the [Mindsight Agent](https://github.com/MindsightCo/hotpath-agent).
