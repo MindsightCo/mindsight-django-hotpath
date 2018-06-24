@@ -21,11 +21,16 @@ class Middleware(MiddlewareMixin):
         if self._config.MINDSIGHT_AGENT_URL is None:
             raise django.core.exceptions.MiddleWareNotUsed
 
+        if self._config.MINDSIGHT_PROJECT is None:
+            raise django.core.exceptions.MiddleWareNotUsed
+
         if self._config.MINDSIGHT_SAMPLE_PROBABILITY < 0.0:
             raise django.core.exceptions.MiddleWareNotUsed
 
         self._store = SampleStore(
             self._config.MINDSIGHT_AGENT_URL,
+            self._config.MINDSIGHT_PROJECT,
+            self._config.MINDSIGHT_ENVIRONMENT,
             send_after=self._config.MINDSIGHT_SEND_AFTER,
             send_timeout=self._config.MINDSIGHT_SEND_TIMEOUT)
 

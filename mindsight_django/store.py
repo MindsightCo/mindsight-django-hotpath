@@ -3,10 +3,11 @@ import requests
 
 
 class SampleStore(object):
-    def __init__(self, server_url, send_after=100, send_timeout=0.05):
+    def __init__(self, server_url, project, environment, send_after=100, send_timeout=0.05):
         self.server_url = server_url
         self.send_after = send_after
         self.send_timeout = send_timeout
+        self.params = {'project': project, 'environment': environment}
         self._samples = {}
         self._count = 0
 
@@ -30,7 +31,7 @@ class SampleStore(object):
             url = "{}/samples/".format(self.server_url)
             h = {"Content-type": "application/json"}
             data = json.dumps(self._samples)
-            r = requests.post(url, headers=h, data=data, timeout=self.send_timeout)
+            r = requests.post(url, params=self.params, headers=h, data=data, timeout=self.send_timeout)
             r.raise_for_status()
             self._samples = {}
             self._count = 0

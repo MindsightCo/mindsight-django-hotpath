@@ -6,7 +6,8 @@ class MindsightConfig(object):
         'MINDSIGHT_SAMPLE_PROBABILITY': 0.02,
         'MINDSIGHT_SAMPLE_INTERVAL': 0.010,
         'MINDSIGHT_SEND_AFTER': 100,
-        'MINDSIGHT_SEND_TIMEOUT': 0.05
+        'MINDSIGHT_SEND_TIMEOUT': 0.05,
+        'MINDSIGHT_ENVIRONMENT': 'production'
     }
 
 
