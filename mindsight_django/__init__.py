@@ -48,7 +48,8 @@ class Middleware(MiddlewareMixin):
 
     
     def _in_project(self, root, stat):
-        return inspect.iscode(stat.code) and \
+        return inspect.iscode(stat.code) and    \
+            stat.code.co_filename[0] != "<" and \
             root in Path(stat.code.co_filename).absolute().parents
 
 
