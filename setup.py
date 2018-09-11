@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="mindsight-django-hotpath",
-    version="0.4",
+    version="0.5",
     description="Mindsight Collector for Python/Django",
     url="https://github.com/MindsightCo/mindsight-django-hotpath",
     license="Apache 2.0",
